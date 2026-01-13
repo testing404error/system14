@@ -16,17 +16,27 @@ const fs = require('fs');
 const path = require('path');
 const { uIOhook, UiohookKey } = require('uiohook-napi');
 
+// Multiple API keys for automatic fallback when quota is exceeded
+const API_KEYS = [
+    "AIzaSyBJPZFXExF7jjgN4HzHCuqr4S_t_gsQd_A",
+    "AIzaSyC1uDwaFbKNyiLQ3UcBTqj0oi8AvQHiWYs",
+    "AIzaSyCJQu_ioveSg9uawuIfx-Y0UYfoiv9EzfI",
+    "AIzaSyB7NWD_Tg8Xd8kusgbOZhJ77fy-H4T3-7s",
+    "AIzaSyCSIqBpoSn3NTdmacUqhoW9Slt2ym7Wthw",
+    "AIzaSyBXqBzrG9atjR-yhIM-du7Fqh3sGcd55CI",
+    "AIzaSyBqn8urUzREPZEBqDv7vKZSJCb3GNFrdL8",
+    "AIzaSyCOLQ5vNddIpWYrI2LDftTsz7gbZ_ISBKA",
+    "AIzaSyBBaDh4nL3wjUuKxXql9qbuhzBKEu7De1Q",
+];
 
-const API_KEY = "AIzaSyAM9BEZ9_UXMJToWXtmsWXPUnV1YasiEdc"
-// const API_KEY = "AIzaSyBJPZFXExF7jjgN4HzHCuqr4S_t_gsQd_A"
-// const API_KEY = "AIzaSyC1uDwaFbKNyiLQ3UcBTqj0oi8AvQHiWYs"
-// const API_KEY = "AIzaSyCJQu_ioveSg9uawuIfx-Y0UYfoiv9EzfI"
-// const API_KEY = "AIzaSyB7NWD_Tg8Xd8kusgbOZhJ77fy-H4T3-7s"
 
-// const API_KEY = "AIzaSyBUzUBcRPxIb8Oew_4U7go_zl4PSyWy-SU";
+// expired api : "AIzaSyBUzUBcRPxIb8Oew_4U7go_zl4PSyWy-SU"
 
-if (!API_KEY) {
-    console.error("API Key not found");
+let currentKeyIndex = 0;
+let API_KEY = API_KEYS[currentKeyIndex];
+
+if (!API_KEY || API_KEYS.length === 0) {
+    console.error("No API Keys found");
     process.exit(1);
 }
 
@@ -185,8 +195,38 @@ class SystemMonitor {
                 console.log(`Error with ${modelName}: ${errorStr}`);
 
                 if (errorStr.includes('quota') || errorStr.includes('RESOURCE_EXHAUSTED')) {
-                    console.log(`Quota Exceeded for ${modelName}. Switching to next...`);
-                    lastError = "Quota Exceeded";
+                    console.log(`Quota Exceeded for ${modelName}.`);
+                    
+                    // Try switching to next API key
+                    if (currentKeyIndex < API_KEYS.length - 1) {
+                        currentKeyIndex++;
+                        API_KEY = API_KEYS[currentKeyIndex];
+                        genAI = new GoogleGenerativeAI(API_KEY);
+                        console.log(`Switched to API key #${currentKeyIndex + 1}`);
+                        
+                        // Retry with new API key
+                        try {
+                            model = genAI.getGenerativeModel({ model: modelName });
+                            const result = await model.generateContent([prompt, {
+                                inlineData: {
+                                    data: fs.readFileSync(screenshotPath).toString('base64'),
+                                    mimeType: "image/png"
+                                }
+                            }]);
+                            const response = await result.response;
+                            const text = response.text();
+                            if (text) {
+                                console.log(`Success with ${modelName} using API key #${currentKeyIndex + 1}`);
+                                return text.trim();
+                            }
+                        } catch (retryError) {
+                            console.log(`Retry failed: ${retryError.message}`);
+                            lastError = "All API keys quota exceeded";
+                        }
+                    } else {
+                        lastError = "All API keys quota exceeded";
+                        console.log("All API keys have been tried.");
+                    }
                 } else if (errorStr.includes('404') || errorStr.toLowerCase().includes('not found')) {
                     // Try next model
                     lastError = errorStr;
