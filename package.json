@@ -1,0 +1,25 @@
+{
+  "name": "system-monitor-node",
+  "version": "1.0.0",
+  "description": "Node.js port of system_monitor.py - Stealth screenshot analyzer with Gemini AI",
+  "main": "system_monitor.js",
+  "scripts": {
+    "start": "electron system_monitor.js",
+    "dev": "electron system_monitor.js"
+  },
+  "keywords": [
+    "electron",
+    "screenshot",
+    "gemini",
+    "ai",
+    "stealth"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@google/generative-ai": "^0.21.0",
+    "electron": "^28.0.0",
+    "screenshot-desktop": "^1.15.0",
+    "uiohook-napi": "^1.5.4"
+  }
+}
