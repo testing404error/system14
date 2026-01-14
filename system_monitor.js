@@ -18,19 +18,16 @@ const { uIOhook, UiohookKey } = require('uiohook-napi');
 
 // Multiple API keys for automatic fallback when quota is exceeded
 const API_KEYS = [
-    "AIzaSyBJPZFXExF7jjgN4HzHCuqr4S_t_gsQd_A",
-    "AIzaSyC1uDwaFbKNyiLQ3UcBTqj0oi8AvQHiWYs",
-    "AIzaSyCJQu_ioveSg9uawuIfx-Y0UYfoiv9EzfI",
-    "AIzaSyB7NWD_Tg8Xd8kusgbOZhJ77fy-H4T3-7s",
-    "AIzaSyCSIqBpoSn3NTdmacUqhoW9Slt2ym7Wthw",
-    "AIzaSyBXqBzrG9atjR-yhIM-du7Fqh3sGcd55CI",
-    "AIzaSyBqn8urUzREPZEBqDv7vKZSJCb3GNFrdL8",
-    "AIzaSyCOLQ5vNddIpWYrI2LDftTsz7gbZ_ISBKA",
-    "AIzaSyBBaDh4nL3wjUuKxXql9qbuhzBKEu7De1Q",
+    "AIzaSyDt-gZXel0rZuLl-asr1JtXydTbh2m-po4",
+    "AIzaSyD6Ia4bOKvTwT1smqVZOl7f9jwb1PLtRgg",
+    "3AIzaSyDFqvPaY3XCrCCz55TnV2TDkXMoq-8lsRk",
+    "4AIzaSyAX5q2awKm3xAXDxC4lwmIN5CAqo1z4Ky0",
+    "5AIzaSyAapMrdN0jq4g0aGlzqFH0_wHddDSIB968",
 ];
 
-
-// expired api : "AIzaSyBUzUBcRPxIb8Oew_4U7go_zl4PSyWy-SU"
+//"6AIzaSyA3VUxdLimPjT-y98k1L5cgdh7PDGhEAkM"
+//"7AIzaSyAuw-Xb5U3t7iBQPEKvmNCt_QkneWtbylQ"
+//"8AIzaSyCTNKMvk07pmw4a1ssTljzL62AaST3sFnQ"
 
 let currentKeyIndex = 0;
 let API_KEY = API_KEYS[currentKeyIndex];
