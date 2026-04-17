@@ -18,16 +18,16 @@ const { uIOhook, UiohookKey } = require('uiohook-napi');
 
 // Multiple API keys for automatic fallback when quota is exceeded
 const API_KEYS = [
-    "AIzaSyDt-gZXel0rZuLl-asr1JtXydTbh2m-po4",
-    "AIzaSyD6Ia4bOKvTwT1smqVZOl7f9jwb1PLtRgg",
-    "3AIzaSyDFqvPaY3XCrCCz55TnV2TDkXMoq-8lsRk",
-    "4AIzaSyAX5q2awKm3xAXDxC4lwmIN5CAqo1z4Ky0",
-    "5AIzaSyAapMrdN0jq4g0aGlzqFH0_wHddDSIB968",
+    "1AQ.Ab8RN6Lz1VD-A6nFUV_EdrJ70W_MjM11C2ai9o4oM1HxplvQuA",
+    "2AQ.Ab8RN6JJJ5IbpqMkXOXTmkvYKnx-DSpNNhG1f9kToPm9K2rzyA",
+    "AQ.Ab8RN6JJJ5IbpqMkXOXTmkvYKnx-DSpNNhG1f9kToPm9K2rzyA",
+    "4AQ.Ab8RN6KbMC_Gn5Vs9HsiuwU8dCRPYIsHCiqYifmM6_HkfRDC2A"
 ];
 
-//"6AIzaSyA3VUxdLimPjT-y98k1L5cgdh7PDGhEAkM"
-//"7AIzaSyAuw-Xb5U3t7iBQPEKvmNCt_QkneWtbylQ"
-//"8AIzaSyCTNKMvk07pmw4a1ssTljzL62AaST3sFnQ"
+// 3AQ.Ab8RN6JPXcUrGYGGlwKdZOjoMBEBowTS6fVxJ9tqOjsWDN8uvQ
+// 4AQ.Ab8RN6L36aLdJixBGf70SWhHCDHW1tlp43SEHJkMfwRxH1rpkw
+// 5AQ.Ab8RN6I2WnuP0ibFdYhw_PvFulMeaXScDgkesYslnvjbeImpWA
+// 6AQ.Ab8RN6Jg0Cskg5kRlRYkiy4wk4H1uhxkpdEOUmrLzSVFiaIXIw
 
 let currentKeyIndex = 0;
 let API_KEY = API_KEYS[currentKeyIndex];
@@ -62,6 +62,17 @@ let insertKeyPressed = false;
 class SystemMonitor {
     constructor() {
         this.init();
+    }
+
+    switchToNextApiKey() {
+        if (API_KEYS.length === 0) {
+            throw new Error("No API Keys found");
+        }
+
+        currentKeyIndex = (currentKeyIndex + 1) % API_KEYS.length;
+        API_KEY = API_KEYS[currentKeyIndex];
+        genAI = new GoogleGenerativeAI(API_KEY);
+        console.log(`Switched to API key #${currentKeyIndex + 1}`);
     }
 
     async init() {
@@ -161,76 +172,44 @@ class SystemMonitor {
     async getAnswerFromGemini(screenshotPath, prompt) {
         let lastError = "";
 
+        // Read image once and reuse for all model/key attempts
+        const imageBuffer = fs.readFileSync(screenshotPath);
+        const base64Image = imageBuffer.toString('base64');
+        const imagePart = {
+            inlineData: {
+                data: base64Image,
+                mimeType: "image/png"
+            }
+        };
+
         for (const modelName of MODEL_PRIORITY_LIST) {
-            console.log(`Trying model: ${modelName}...`);
-            storedAnswer = `Scanning...\n(Trying ${modelName})`;
+            // Try each API key exactly once per model, continuously rotating.
+            for (let keyAttempt = 0; keyAttempt < API_KEYS.length; keyAttempt++) {
+                const activeKeyNumber = currentKeyIndex + 1;
+                console.log(`Trying model: ${modelName} with API key #${activeKeyNumber}...`);
+                storedAnswer = `Scanning...\n(${modelName}, key ${activeKeyNumber})`;
 
-            try {
-                model = genAI.getGenerativeModel({ model: modelName });
-                
-                // Read image file
-                const imageBuffer = fs.readFileSync(screenshotPath);
-                const base64Image = imageBuffer.toString('base64');
+                try {
+                    model = genAI.getGenerativeModel({ model: modelName });
+                    const result = await model.generateContent([prompt, imagePart]);
+                    const response = await result.response;
+                    const text = response.text();
 
-                const imagePart = {
-                    inlineData: {
-                        data: base64Image,
-                        mimeType: "image/png"
+                    if (text) {
+                        console.log(`Success with ${modelName} using API key #${activeKeyNumber}`);
+                        return text.trim();
                     }
-                };
-
-                const result = await model.generateContent([prompt, imagePart]);
-                const response = await result.response;
-                const text = response.text();
-
-                if (text) {
-                    console.log(`Success with ${modelName}`);
-                    return text.trim();
-                }
-            } catch (error) {
-                const errorStr = error.message || String(error);
-                console.log(`Error with ${modelName}: ${errorStr}`);
-
-                if (errorStr.includes('quota') || errorStr.includes('RESOURCE_EXHAUSTED')) {
-                    console.log(`Quota Exceeded for ${modelName}.`);
-                    
-                    // Try switching to next API key
-                    if (currentKeyIndex < API_KEYS.length - 1) {
-                        currentKeyIndex++;
-                        API_KEY = API_KEYS[currentKeyIndex];
-                        genAI = new GoogleGenerativeAI(API_KEY);
-                        console.log(`Switched to API key #${currentKeyIndex + 1}`);
-                        
-                        // Retry with new API key
-                        try {
-                            model = genAI.getGenerativeModel({ model: modelName });
-                            const result = await model.generateContent([prompt, {
-                                inlineData: {
-                                    data: fs.readFileSync(screenshotPath).toString('base64'),
-                                    mimeType: "image/png"
-                                }
-                            }]);
-                            const response = await result.response;
-                            const text = response.text();
-                            if (text) {
-                                console.log(`Success with ${modelName} using API key #${currentKeyIndex + 1}`);
-                                return text.trim();
-                            }
-                        } catch (retryError) {
-                            console.log(`Retry failed: ${retryError.message}`);
-                            lastError = "All API keys quota exceeded";
-                        }
-                    } else {
-                        lastError = "All API keys quota exceeded";
-                        console.log("All API keys have been tried.");
-                    }
-                } else if (errorStr.includes('404') || errorStr.toLowerCase().includes('not found')) {
-                    // Try next model
+                } catch (error) {
+                    const errorStr = error.message || String(error);
                     lastError = errorStr;
-                } else {
-                    lastError = errorStr;
+                    console.log(`Error with ${modelName} on API key #${activeKeyNumber}: ${errorStr}`);
+
+                    // On any failure, switch to next key. Last key wraps to first.
+                    this.switchToNextApiKey();
                 }
             }
+
+            console.log(`All API keys failed for ${modelName}. Moving to next model...`);
         }
 
         return `Error: ${lastError || 'All models failed'}`;
