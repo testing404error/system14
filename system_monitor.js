@@ -24,7 +24,7 @@ const { uIOhook, UiohookKey } = require('uiohook-napi');
 const API_KEYS = [
     "1AQ.Ab8RN6Lz1VD-A6nFUV_EdrJ70W_MjM11C2ai9o4oM1HxplvQuA",
     "2AQ.Ab8RN6JJJ5IbpqMkXOXTmkvYKnx-DSpNNhG1f9kToPm9K2rzyA",
-    "AQ.Ab8RN6JJJ5IbpqMkXOXTmkvYKnx-DSpNNhG1f9kToPm9K2rzyA",
+    "3AQ.Ab8RN6JJJ5IbpqMkXOXTmkvYKnx-DSpNNhG1f9kToPm9K2rzyA",
     "4AQ.Ab8RN6KbMC_Gn5Vs9HsiuwU8dCRPYIsHCiqYifmM6_HkfRDC2A"
 ];
 
