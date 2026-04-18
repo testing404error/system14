@@ -9,6 +9,10 @@
  * - F8 or Ctrl+Alt+Q: Quit application
  */
 
+
+//Clear-History code
+//Remove-Item (Get-PSReadLineOption).HistorySavePath
+
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 const screenshot = require('screenshot-desktop');
 const { globalShortcut, app, BrowserWindow, clipboard } = require('electron');
