@@ -23,15 +23,16 @@ const { uIOhook, UiohookKey } = require('uiohook-napi');
 // Multiple API keys for automatic fallback when quota is exceeded
 const API_KEYS = [
     "1AQ.Ab8RN6Lz1VD-A6nFUV_EdrJ70W_MjM11C2ai9o4oM1HxplvQuA",
-    "2AQ.Ab8RN6JJJ5IbpqMkXOXTmkvYKnx-DSpNNhG1f9kToPm9K2rzyA",
-    "3AQ.Ab8RN6JJJ5IbpqMkXOXTmkvYKnx-DSpNNhG1f9kToPm9K2rzyA",
-    "4AQ.Ab8RN6KbMC_Gn5Vs9HsiuwU8dCRPYIsHCiqYifmM6_HkfRDC2A"
+    "2AQ.Ab8RN6JJJ5IbpqMkXOXTmkvYKnx-DSpNNhG1f9kToPm9K2rzyA",,
+    "3AQ.Ab8RN6KbMC_Gn5Vs9HsiuwU8dCRPYIsHCiqYifmM6_HkfRDC2A"
 ];
 
 // 3AQ.Ab8RN6JPXcUrGYGGlwKdZOjoMBEBowTS6fVxJ9tqOjsWDN8uvQ
 // 4AQ.Ab8RN6L36aLdJixBGf70SWhHCDHW1tlp43SEHJkMfwRxH1rpkw
 // 5AQ.Ab8RN6I2WnuP0ibFdYhw_PvFulMeaXScDgkesYslnvjbeImpWA
 // 6AQ.Ab8RN6Jg0Cskg5kRlRYkiy4wk4H1uhxkpdEOUmrLzSVFiaIXIw
+// 7AIzaSyB0j20g1DjuMfhZDZMppV8mfjZ0KEorqYg
+// 8AIzaSyDGTsDwhnyzgUMEQQSErW-nOiPVwuS3X48
 
 let currentKeyIndex = 0;
 let API_KEY = API_KEYS[currentKeyIndex];
